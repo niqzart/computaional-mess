@@ -3,6 +3,7 @@ venv
 .idea
 __pycache__
 *.pdf
+!1.slae.pdf
 *.zip
 *.pyc
 *.docx
