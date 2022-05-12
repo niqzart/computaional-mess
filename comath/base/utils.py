@@ -26,7 +26,7 @@ def number_to_decimal(value: NUMBER) -> Decimal:
 
 def beautify_decimal(value: Decimal, quantize: bool = True) -> str:
     if quantize:
-        value = value.quantize(Decimal("1E-35"))
+        value = value.quantize(Decimal("1E-17"))
     value = value.normalize()
     if value == 0:
         return "0"
