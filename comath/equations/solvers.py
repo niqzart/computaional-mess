@@ -1,3 +1,4 @@
+from abc import ABC
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -19,14 +20,16 @@ class ParamSpec:
 
 
 class Solver:
+    def solve(self, equation: AnyEquation, params: ParamSpec) -> Decimal:
+        raise NotImplementedError()
+
+
+class DifferentialSolver(Solver, ABC):
     def __init__(self, root_precision: int = 10):
         self.precision: Decimal = Decimal(f"1E-{root_precision}")
 
     def is_root(self, y: Decimal) -> bool:
         return abs(y) < self.precision
-
-    def solve(self, equation: AnyEquation, params: ParamSpec) -> Decimal:
-        raise NotImplementedError()
 
 
 @dataclass()
@@ -39,7 +42,7 @@ class StraightParamSpec(ParamSpec):
         return right, left
 
 
-class StraightSolverABS(Solver):
+class StraightSolverABS(DifferentialSolver):
     def _solve(self, equation: AnyEquation, a: Decimal, f_a: Decimal, b: Decimal, f_b: Decimal) -> Decimal:
         raise NotImplementedError()
 
@@ -86,7 +89,7 @@ class IterativeParamSpec(ParamSpec):
         return number_to_decimal(self.initial_guess)
 
 
-class IterativeSolverABS(Solver):
+class IterativeSolverABS(DifferentialSolver):
     def _solve(self, equation: AnyEquation, x_n: Decimal, f_x_n: Decimal) -> Decimal:
         raise NotImplementedError()
 

@@ -21,6 +21,9 @@ class AnyEquation:
         return LambdaEquation(lambda x: self.function(other.function(x)),
                               lambda x: self.derivative(other.function(x)) * other.derivative(x))
 
+    def __invert__(self) -> AnyEquation:
+        return LambdaEquation(self.derivative)
+
     def __pos__(self):
         return LambdaEquation(self.function, self.derivative, self.fixed_point)
 
