@@ -1,7 +1,5 @@
-from decimal import DecimalException, Decimal
-
 from base import beautify_decimal
-from equations import IntegratorParamSpec, LeftRectangleIntegrator, RightRectangleIntegrator, LambdaEquation
+from equations import IntegratorParamSpec, LeftRectangleIntegrator, RightRectangleIntegrator
 from equations import MiddleRectangleIntegrator, TrapezoidalIntegrator, SimpsonsIntegrator
 from equations import functions
 
