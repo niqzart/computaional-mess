@@ -25,7 +25,8 @@ class Solver:
 
 
 class DifferentialSolver(Solver, ABC):
-    def __init__(self, root_precision: int = 10):
+    def __init__(self, max_steps: int = None, root_precision: int = 20):
+        self.max_steps: int | None = max_steps
         self.precision: Decimal = Decimal(f"1E-{root_precision}")
 
     def is_root(self, y: Decimal) -> bool:
@@ -56,29 +57,29 @@ class StraightSolverABS(DifferentialSolver):
             return b
         if f_a * f_b > 0:
             raise ValueError("")
-        return self._solve(equation, a, f_a, b, f_b)
+
+        step: int = 0
+        xi = self._solve(equation, a, f_a, b, f_b)
+        f_xi: Decimal = equation.function(xi)
+        while not self.is_root(f_xi) and (self.max_steps is None or step < self.max_steps):
+            if f_a.is_signed() != f_xi.is_signed():
+                b, f_b = xi, f_xi
+            else:
+                a, f_a = xi, f_xi
+            xi = self._solve(equation, a, f_a, b, f_b)
+            f_xi: Decimal = equation.function(xi)
+            step += 1
+        return xi
 
 
 class BisectionSolver(StraightSolverABS):
     def _solve(self, equation: AnyEquation, a: Decimal, f_a: Decimal, b: Decimal, f_b: Decimal) -> Decimal:
-        xi = (a + b) / 2
-        f_xi: Decimal = equation.function(xi)
-        if self.is_root(f_xi):
-            return xi
-        if f_a.is_signed() != f_xi.is_signed():
-            return self._solve(equation, a, f_a, xi, f_xi)
-        return self._solve(equation, xi, f_xi, b, f_b)
+        return (a + b) / 2
 
 
 class SecantSolver(StraightSolverABS):
     def _solve(self, equation: AnyEquation, a: Decimal, f_a: Decimal, b: Decimal, f_b: Decimal) -> Decimal:
-        xi = a - (f_a * (b - a)) / (f_b - f_a)
-        f_xi: Decimal = equation.function(xi)
-        if self.is_root(f_xi):
-            return xi
-        if f_a.is_signed() != f_xi.is_signed():
-            return self._solve(equation, a, f_a, xi, f_xi)
-        return self._solve(equation, xi, f_xi, b, f_b)
+        return a - (f_a * (b - a)) / (f_b - f_a)
 
 
 @dataclass()
@@ -94,26 +95,23 @@ class IterativeSolverABS(DifferentialSolver):
         raise NotImplementedError()
 
     def solve(self, equation: AnyEquation, params: IterativeParamSpec) -> Decimal:
+        step: int = 0
         x_n = params.convert()
-        f_x_n = equation.function(x_n)
-        return self._solve(equation, x_n, f_x_n)
+        f_n = equation.function(x_n)
+        while not self.is_root(f_n) and (self.max_steps is None or step < self.max_steps):
+            x_n = self._solve(equation, x_n, f_n)
+            f_n = equation.function(x_n)
+            step += 1
+        return x_n
 
 
 class NewtonSolver(IterativeSolverABS):
-    def _solve(self, equation: AnyEquation, x_n: Decimal, f_x_n: Decimal):
-        x_n1 = x_n - f_x_n / equation.derivative(x_n)
-        f_x_n1 = equation.function(x_n1)
-        if self.is_root(f_x_n1):
-            return x_n1
-        return self._solve(equation, x_n1, f_x_n1)
+    def _solve(self, equation: AnyEquation, x_n: Decimal, f_n: Decimal) -> Decimal:
+        return x_n - f_n / equation.derivative(x_n)
 
 
 class IterationSolver(IterativeSolverABS):
-    def _solve(self, equation: AnyEquation, x_n: Decimal, _) -> Decimal:
+    def _solve(self, equation: AnyEquation, x_n: Decimal, f_n: Decimal) -> Decimal:
         if equation.fixed_point is None:
             raise ValueError("")
-        x_n1 = equation.fixed_point(x_n)  # noqa
-        f_x_n1 = equation.function(x_n1)
-        if self.is_root(f_x_n1):
-            return x_n1
-        return self._solve(equation, x_n1, f_x_n1)
+        return equation.fixed_point(x_n)  # noqa
