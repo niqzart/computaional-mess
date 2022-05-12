@@ -20,14 +20,17 @@ class ParamSpec:
 
 
 class Solver:
+    def __init__(self, root_precision: int = None):
+        self.precision: Decimal = Decimal(f"1E-{root_precision or 20}")
+
     def solve(self, equation: AnyEquation, params: ParamSpec) -> Decimal:
         raise NotImplementedError()
 
 
 class DifferentialSolver(Solver, ABC):
-    def __init__(self, max_steps: int = None, root_precision: int = 20):
+    def __init__(self, max_steps: int = None, root_precision: int = None):
+        super().__init__(root_precision)
         self.max_steps: int | None = max_steps
-        self.precision: Decimal = Decimal(f"1E-{root_precision}")
 
     def is_root(self, y: Decimal) -> bool:
         return abs(y) < self.precision

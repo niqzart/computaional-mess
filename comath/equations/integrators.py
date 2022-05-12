@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, DecimalException
 
 from base import NUMBER, number_to_decimal
 from .functions import AnyEquation
@@ -17,80 +17,81 @@ class IntegratorParamSpec(ParamSpec):
 
 
 class Integrator(Solver):
-    def __init__(self, separations: int = 1000000):
+    def __init__(self, separations: int = 1000, root_precision: int = None):
+        super().__init__(root_precision)
         self.separations = separations
 
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
+    def _function_or_break(self, equation: AnyEquation, x: Decimal) -> Decimal:
+        try:
+            return equation.function(x)
+        except DecimalException:
+            return (equation.function(x - self.precision) + equation.function(x + self.precision)) / 2
+
+    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal, step_size: Decimal) -> Decimal:
         raise NotImplementedError()
 
     def solve(self, equation: AnyEquation, params: IntegratorParamSpec) -> Decimal:
         a, b = params.convert()
+        step_size: Decimal = (b - a) / self.separations
         # result: Decimal = Decimal()
         # for i in range(self.separations - 1):
         #     result +=
-        return self._solve(equation, a, b)
+        return self._solve(equation, a, b, step_size)
 
 
-class LeftRectangleIntegrator(Integrator):
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
+class RectangleIntegratorABS(Integrator):
+    def _step_start(self, a: Decimal, step_size: Decimal):
+        raise NotImplementedError()
+
+    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal, step_size: Decimal) -> Decimal:
         result: Decimal = Decimal()
-        step_size: Decimal = (b - a) / self.separations
+        step_start: Decimal = self._step_start(a, step_size)
+        for _ in range(self.separations - 1):
+            result += self._function_or_break(equation, step_start) * step_size
+            step_start += step_size
+        return result
+
+
+class LeftRectangleIntegrator(RectangleIntegratorABS):
+    def _step_start(self, a: Decimal, step_size: Decimal):
+        return a
+
+
+class RightRectangleIntegrator(RectangleIntegratorABS):
+    def _step_start(self, a: Decimal, step_size: Decimal):
+        return a + step_size
+
+
+class MiddleRectangleIntegrator(RectangleIntegratorABS):
+    def _step_start(self, a: Decimal, step_size: Decimal):
+        return a + step_size / 2
+
+
+class ComplexIntegratorABS(Integrator):
+    def _calc_step(self, f_start: Decimal, f_mid: Decimal, f_next: Decimal, half_step_size: Decimal):
+        raise NotImplementedError()
+
+    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal, step_size: Decimal) -> Decimal:
+        result: Decimal = Decimal()
+        step_size /= 2
         step_start: Decimal = a
-        for _ in range(self.separations - 1):
-            result += equation.function(step_start) * step_size
-            step_start += step_size
-        return result
-
-
-class RightRectangleIntegrator(Integrator):
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
-        result: Decimal = Decimal()
-        step_size: Decimal = (b - a) / self.separations
-        step_start: Decimal = a + step_size
-        for _ in range(self.separations - 1):
-            result += equation.function(step_start) * step_size
-            step_start += step_size
-        return result
-
-
-class MiddleRectangleIntegrator(Integrator):
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
-        result: Decimal = Decimal()
-        step_size: Decimal = (b - a) / self.separations
-        step_start: Decimal = a + step_size / 2
-        for _ in range(self.separations - 1):
-            result += equation.function(step_start) * step_size
-            step_start += step_size
-        return result
-
-
-class TrapezoidalIntegrator(Integrator):
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
-        result: Decimal = Decimal()
-        step_size: Decimal = (b - a) / self.separations
-        step_start: Decimal = a
-        function_start: Decimal = equation.function(step_start)
+        function_start: Decimal = self._function_or_break(equation, step_start)
         function_next: Decimal
         for _ in range(self.separations):
             step_start += step_size
-            function_next = equation.function(step_start)
-            result += (function_start + function_next) * step_size / 2
+            function_mid = self._function_or_break(equation, step_start)
+            step_start += step_size
+            function_next = self._function_or_break(equation, step_start)
+            result += self._calc_step(function_start, function_mid, function_next, step_size)
             function_start = function_next
         return result
 
 
-class SimpsonsIntegrator(Integrator):
-    def _solve(self, equation: AnyEquation, a: Decimal, b: Decimal) -> Decimal:
-        result: Decimal = Decimal()
-        step_size: Decimal = (b - a) / self.separations
-        step_start: Decimal = a
-        function_start: Decimal = equation.function(step_start)
-        function_next: Decimal
-        for _ in range(self.separations):
-            step_start += step_size / 2
-            function_mid = equation.function(step_start)
-            step_start += step_size / 2
-            function_next = equation.function(step_start)
-            result += (function_start + 4 * function_mid + function_next) * step_size / 6
-            function_start = function_next
-        return result
+class TrapezoidalIntegrator(ComplexIntegratorABS):
+    def _calc_step(self, f_start: Decimal, f_mid: Decimal, f_next: Decimal, half_step_size: Decimal):
+        return (f_start + f_next) * half_step_size
+
+
+class SimpsonsIntegrator(ComplexIntegratorABS):
+    def _calc_step(self, f_start: Decimal, f_mid: Decimal, f_next: Decimal, half_step_size: Decimal):
+        return (f_start + 4 * f_mid + f_next) * half_step_size / 3
