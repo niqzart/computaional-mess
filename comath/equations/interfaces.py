@@ -75,7 +75,7 @@ class AnyEquation:
                 result: Decimal = self.derivative(x) * other_function - self.function(x) * other.derivative(x)
                 return result / other_function ** 2
 
-            return LambdaEquation(lambda x: self.function(x) * other.function(other), derivative)
+            return LambdaEquation(lambda x: self.function(x) / other.function(x), derivative)
         raise TypeError("")
 
     def __rtruediv__(self, other: Decimal):

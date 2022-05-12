@@ -10,8 +10,8 @@ from equations.interfaces import AnyEquation
 
 @dataclass
 class LinearEquation(AnyEquation):
-    k: Decimal = 1
-    b: Decimal = 0
+    k: Decimal = Decimal(1)
+    b: Decimal = Decimal(0)
 
     def function(self, x: Decimal) -> Decimal:
         return self.k * x + self.b
@@ -25,9 +25,9 @@ class LinearEquation(AnyEquation):
 
 @dataclass
 class SquareEquation(AnyEquation):
-    a: Decimal = 1
-    b: Decimal = 0
-    c: Decimal = 0
+    a: Decimal = Decimal(1)
+    b: Decimal = Decimal(0)
+    c: Decimal = Decimal(0)
 
     def function(self, x: Decimal) -> Decimal:
         return self.a * x ** 2 + self.b * x + self.c
