@@ -3,6 +3,7 @@ from decimal import Decimal
 from base import beautify_decimal
 from equations import BisectionSolver, SecantSolver, NewtonSolver, IterationSolver
 from equations import StraightParamSpec, IterativeParamSpec, LambdaEquation
+from equations import functions
 
 if __name__ == "__main__":
     e1 = LambdaEquation(

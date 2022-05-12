@@ -1,8 +1,7 @@
 from enum import Enum
 from time import time_ns
 
-from base import input_menu, Row, input_filename, input_int_range, input_bool
-from lab1.data import EquationSystem
+from base import input_menu, Row, input_filename, input_int_range, input_bool, LinearEquationSystem
 
 TIME_UNIT = "ms"
 
@@ -17,22 +16,22 @@ class InputType(Enum):
 if __name__ == "__main__":
     while True:
         try:
-            es: EquationSystem
+            es: LinearEquationSystem
             solution: Row
-            triangle: EquationSystem
+            triangle: LinearEquationSystem
             generated: Row | None = None
             elapsed_time: int
 
             match input_menu(InputType, "Enter the preferred input method: "):
                 case InputType.KEYBOARD:
-                    es = EquationSystem.from_input()
+                    es = LinearEquationSystem.from_input()
                     elapsed_time = time_ns()
                     solution, triangle = es.wild_solve()
                     elapsed_time = time_ns() - elapsed_time
                 case InputType.FILE:
                     filename = input_filename("Enter the filename: ")
                     with open(filename) as f:
-                        es = EquationSystem.from_file(f)
+                        es = LinearEquationSystem.from_file(f)
                     elapsed_time = time_ns()
                     solution, triangle = es.wild_solve()
                     elapsed_time = time_ns() - elapsed_time
@@ -42,7 +41,7 @@ if __name__ == "__main__":
                     row_count = input_int_range("Enter the row count (2 to 20): ", 2, 21)
                     # noinspection PyRedeclaration
                     es, solution, triangle, generated, elapsed_time = \
-                        EquationSystem.from_random(row_count, allow_floats=not ints_only)
+                        LinearEquationSystem.from_random(row_count, allow_floats=not ints_only)
                 case InputType.EXIT:
                     break
 

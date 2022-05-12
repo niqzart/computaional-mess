@@ -8,9 +8,9 @@ from typing import TextIO
 from base import Matrix, Row
 
 
-class EquationSystem(Matrix):
+class LinearEquationSystem(Matrix):
     @classmethod
-    def from_input(cls) -> EquationSystem:
+    def from_input(cls) -> LinearEquationSystem:
         i: int = 0
         rows: list[Row] = []
         row_size: int | None = None
@@ -51,7 +51,7 @@ class EquationSystem(Matrix):
 
     @classmethod
     def from_random(cls, row_count: int, allow_floats: bool = True, seed_value=None) \
-            -> tuple[EquationSystem, Row, EquationSystem, Row, int]:
+            -> tuple[LinearEquationSystem, Row, LinearEquationSystem, Row, int]:
         if seed_value is not None:
             seed(seed_value)
 
@@ -64,7 +64,7 @@ class EquationSystem(Matrix):
         generated: Row = Row.from_lambda(row_count, generate)
         A: Matrix = Matrix([Row.from_lambda(row_count, generate) for _ in range(row_count)])
         B = A * generated
-        result = EquationSystem([Row([*row, B[i]]) for i, row in enumerate(A)])
+        result = LinearEquationSystem([Row([*row, B[i]]) for i, row in enumerate(A)])
 
         try:
             elapsed_time: int = time_ns()
@@ -76,7 +76,7 @@ class EquationSystem(Matrix):
             return cls.from_random(row_count, allow_floats, seed_value)
 
     def copy(self):
-        return EquationSystem([item.copy() for item in self], self.size)
+        return LinearEquationSystem([item.copy() for item in self], self.size)
 
     def max(self, exclude_np1: bool = True, absolute: bool = True) -> Decimal:
         key = abs if absolute else None
@@ -120,7 +120,7 @@ class EquationSystem(Matrix):
 
         return result_dict
 
-    def solve(self) -> tuple[Row, EquationSystem]:
+    def solve(self) -> tuple[Row, LinearEquationSystem]:
         result = self._solve()
 
         def triangle_row_sort(args):
@@ -129,19 +129,19 @@ class EquationSystem(Matrix):
                 return -1
             return row.data.count(Decimal(0))
 
-        triangle = EquationSystem(
+        triangle = LinearEquationSystem(
             [Row([*(row[rm.index(i)] if i in rm else 0
                     for i in range(len(result))), row[-1]])
              for _, row, rm in reversed(result.values())])
         triangle.transpose()
         columns = sorted(enumerate(triangle), key=triangle_row_sort, reverse=True)
-        triangle = EquationSystem([column for _, column in columns])
+        triangle = LinearEquationSystem([column for _, column in columns])
         triangle.transpose()
 
         return Row([x[1] for x in sorted([
             (k, v[0]) for k, v in result.items()], key=lambda x: x[0])]), triangle
 
-    def wild_solve(self) -> tuple[Row, EquationSystem]:
+    def wild_solve(self) -> tuple[Row, LinearEquationSystem]:
         try:
             return self.copy().solve()
         except DecimalException:
