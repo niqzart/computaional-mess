@@ -4,7 +4,6 @@ from time import time_ns
 from base import input_menu, Row, input_filename, input_int_range, input_bool
 from lab1.data import EquationSystem
 
-
 TIME_UNIT = "ms"
 
 

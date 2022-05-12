@@ -1,8 +1,8 @@
 from decimal import Decimal
 
-from base.utils import beautify_decimal
-from equations import StraightParamSpec, IterativeParamSpec, LambdaEquation
+from base import beautify_decimal
 from equations import BisectionSolver, SecantSolver, NewtonSolver, IterationSolver
+from equations import StraightParamSpec, IterativeParamSpec, LambdaEquation
 
 if __name__ == "__main__":
     e1 = LambdaEquation(

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from decimal import Decimal, DecimalException
 from random import random, seed
-from typing import TextIO
 from time import time_ns
+from typing import TextIO
 
 from base import Matrix, Row
 
