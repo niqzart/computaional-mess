@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, DecimalException
 from enum import Enum
 from math import *
 
@@ -150,5 +150,25 @@ class LogarithmEquation(AnyEquation):
         if self.a is None:
             return 1 / x
         return 1 / (x * self.a.ln())
+
+    fixed_point = None
+
+
+@dataclass()
+class SignEquation(AnyEquation):
+    reversed: bool = False
+    zero_as: Decimal | None = None
+
+    def function(self, x: Decimal) -> Decimal:
+        if x == 0:
+            if self.zero_as is not None:
+                return self.zero_as
+            raise DecimalException()
+        return Decimal(-1 if (x < 0) != self.reversed else 1)
+
+    def derivative(self, x: Decimal) -> Decimal:
+        if x == 0:
+            raise DecimalException()
+        return Decimal()
 
     fixed_point = None
