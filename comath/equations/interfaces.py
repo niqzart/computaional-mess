@@ -35,6 +35,9 @@ class AnyEquation:
                                   lambda x: self.derivative(x) + other.derivative(x))
         raise TypeError("")
 
+    def __radd__(self, other):
+        return self + other
+
     def __sub__(self, other: Decimal | AnyEquation):
         if isinstance(other, Decimal):
             return LambdaEquation(lambda x: self.function(x) - other, self.derivative)
@@ -42,6 +45,9 @@ class AnyEquation:
             return LambdaEquation(lambda x: self.function(x) - other.function(other),
                                   lambda x: self.derivative(x) - other.derivative(x))
         raise TypeError("")
+
+    def __rsub__(self, other):
+        return -self + other
 
     def __mul__(self, other: Decimal | AnyEquation):
         if isinstance(other, Decimal):
@@ -54,6 +60,9 @@ class AnyEquation:
             return LambdaEquation(lambda x: self.function(x) * other.function(other), derivative)
         raise TypeError("")
 
+    def __rmul__(self, other):
+        return self * other
+
     def __truediv__(self, other: Decimal | AnyEquation):
         if isinstance(other, Decimal):
             return self * (1 / other)
@@ -65,6 +74,13 @@ class AnyEquation:
 
             return LambdaEquation(lambda x: self.function(x) * other.function(other), derivative)
         raise TypeError("")
+
+    def __rtruediv__(self, other: Decimal):
+        if not isinstance(other, Decimal):
+            raise TypeError("")
+
+        return LambdaEquation(lambda x: other / self.function(x),
+                              lambda x: -other * self.derivative(x) / self.function(x) ** 2)
 
 
 class SimpleFunction(Protocol):
