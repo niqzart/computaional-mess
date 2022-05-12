@@ -17,7 +17,7 @@ class IntegratorParamSpec(ParamSpec):
 
 
 class Integrator(Solver):
-    def __init__(self, separations: int = 1000, root_precision: int = None):
+    def __init__(self, separations: int = 10000, root_precision: int = None):
         super().__init__(root_precision)
         self.separations = separations
 
@@ -52,19 +52,19 @@ class RectangleIntegratorABS(Integrator):
         return result
 
 
-class LeftRectangleIntegrator(RectangleIntegratorABS):
-    def _step_start(self, a: Decimal, step_size: Decimal):
-        return a
-
-
 class RightRectangleIntegrator(RectangleIntegratorABS):
     def _step_start(self, a: Decimal, step_size: Decimal):
-        return a + step_size
+        return a
 
 
 class MiddleRectangleIntegrator(RectangleIntegratorABS):
     def _step_start(self, a: Decimal, step_size: Decimal):
         return a + step_size / 2
+
+
+class LeftRectangleIntegrator(RectangleIntegratorABS):
+    def _step_start(self, a: Decimal, step_size: Decimal):
+        return a + step_size
 
 
 class ComplexIntegratorABS(Integrator):

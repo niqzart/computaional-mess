@@ -5,6 +5,7 @@ from decimal import Decimal, DecimalException
 from enum import Enum
 from math import *
 
+from base import NUMBER, number_to_decimal
 from equations.interfaces import AnyEquation
 
 
@@ -40,10 +41,10 @@ class SquareEquation(AnyEquation):
 
 
 class PolynomialEquation(AnyEquation):
-    def __init__(self, *coefficients: Decimal):
+    def __init__(self, *coefficients: NUMBER):
         if len(coefficients) < 3:
             raise ValueError("")
-        self.coefficients: tuple[Decimal, ...] = coefficients
+        self.coefficients: tuple[Decimal, ...] = tuple(number_to_decimal(c) for c in coefficients)
 
     def function(self, x: Decimal) -> Decimal:
         result: Decimal = Decimal()
