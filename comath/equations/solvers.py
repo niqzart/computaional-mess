@@ -4,7 +4,7 @@ from decimal import Decimal
 from enum import Enum
 
 from base import NUMBER, number_to_decimal
-from equations import AnyEquation
+from .interfaces import AnyEquation
 
 
 class SolveMethod(Enum):
