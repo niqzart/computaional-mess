@@ -72,7 +72,7 @@ def oscillating_function_antiderivative(x: Decimal) -> Decimal:
     step = Decimal(2)
     fact = Decimal(3)
     for k in range(1, 100):
-        result += base ** k / (2 * k * step)
+        result += base ** k / (k * step)
         step *= fact * (fact + 1)
         fact += 2
 
