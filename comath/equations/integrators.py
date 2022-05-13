@@ -17,9 +17,11 @@ class IntegratorParamSpec(ParamSpec):
 
 
 class Integrator(Solver):
+    default_steps = 10000
+
     def __init__(self, separations: int = None, root_precision: int = None):
         super().__init__(root_precision)
-        self.separations = separations or 10000  # TODO calculate this from precision
+        self.separations = separations or self.default_steps
 
     def _function_or_break(self, equation: AnyEquation, x: Decimal) -> Decimal:
         try:
@@ -40,6 +42,8 @@ class Integrator(Solver):
 
 
 class RectangleIntegratorABS(Integrator):
+    default_steps = 1000000
+
     def _step_start(self, a: Decimal, step_size: Decimal):
         raise NotImplementedError()
 
@@ -53,6 +57,8 @@ class RectangleIntegratorABS(Integrator):
 
 
 class RightRectangleIntegrator(RectangleIntegratorABS):
+    default_steps = 1000000
+
     def _step_start(self, a: Decimal, step_size: Decimal):
         return a
 
@@ -63,6 +69,8 @@ class MiddleRectangleIntegrator(RectangleIntegratorABS):
 
 
 class LeftRectangleIntegrator(RectangleIntegratorABS):
+    default_steps = 1000000
+
     def _step_start(self, a: Decimal, step_size: Decimal):
         return a + step_size
 
@@ -88,10 +96,14 @@ class ComplexIntegratorABS(Integrator):
 
 
 class TrapezoidalIntegrator(ComplexIntegratorABS):
+    default_steps = 10000
+
     def _calc_step(self, f_start: Decimal, f_mid: Decimal, f_next: Decimal, half_step_size: Decimal):
         return (f_start + f_next) * half_step_size
 
 
 class SimpsonsIntegrator(ComplexIntegratorABS):
+    default_steps = 100
+
     def _calc_step(self, f_start: Decimal, f_mid: Decimal, f_next: Decimal, half_step_size: Decimal):
         return (f_start + 4 * f_mid + f_next) * half_step_size / 3

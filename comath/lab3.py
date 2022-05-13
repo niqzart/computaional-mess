@@ -7,6 +7,8 @@ from equations import IntegratorParamSpec, LeftRectangleIntegrator, RightRectang
 from equations import MiddleRectangleIntegrator, TrapezoidalIntegrator, SimpsonsIntegrator
 from equations import functions
 
+HIDE_SEPARATIONS: bool = False
+
 
 class ExampleFunction(Enum):
     SQUARE_FUNCTION = "Square function: ax² + bx + c"
@@ -92,13 +94,9 @@ if __name__ == "__main__":
     ]
 
     while True:
-        by_max_steps = input_bool("Do you want to specify the amount of steps instead of precision? ")
+        by_max_steps = input_bool("Do you want to specify the amount of steps manually? ")
         print("Interpreting as", "Yes" if by_max_steps else "No")
-        if by_max_steps:
-            max_steps = input_int_range("Enter the number of steps: ", 1, 1000000000000000)
-        else:
-            precision = input_decimal("Enter the precision: ", lambda x: x if 0 < x < 1 else None)
-            max_steps = None
+        max_steps = input_int_range("Enter the number of steps: ", 1, 1000000000000000) if by_max_steps else None
 
         integrators: dict[str, Integrator] = {integrator_type.__name__: integrator_type(max_steps)
                                               for integrator_type in integrator_types}
@@ -155,7 +153,7 @@ if __name__ == "__main__":
 
         print("\nResults:")
         for name, (result, separations) in results.items():
-            sep_description = () if separations is None else ("done in", separations, "separations")
+            sep_description = () if HIDE_SEPARATIONS or separations is None else ("done in", separations, "separations")
             print(f"{name + ':':30} {beautify_decimal(result):30}", *sep_description)
 
         no_exit = input_bool("Do you want to continue integrating? ")
