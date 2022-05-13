@@ -59,7 +59,7 @@ class StraightSolverABS(DifferentialSolver):
         if f_b == 0:
             return b
         if f_a * f_b > 0:
-            raise ValueError("")
+            raise ValueError("Can't find roots with given borders")
 
         step: int = 0
         xi = self._solve(equation, a, f_a, b, f_b)

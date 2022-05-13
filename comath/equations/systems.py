@@ -55,7 +55,7 @@ class EquationSystem:
         delta_x: Row | None = None
         while (delta_x is None or abs(max(delta_x)) > self.precision) and step < self.max_steps:
             jacobian = LinearEquationSystem([
-                Row([equation.derivative(x, derive_by=i) for i in range(len(self))]
+                Row([equation.derivative(x, derive_by=i) for i in range(len(x))]
                     + [equation.function(x)])
                 for equation in self])
             delta_x = jacobian.solve()[0]
