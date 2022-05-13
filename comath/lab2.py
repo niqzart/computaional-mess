@@ -1,11 +1,19 @@
 from decimal import Decimal
 
-from base import beautify_decimal
+from base import beautify_decimal, Row
 from equations import BisectionSolver, SecantSolver, NewtonSolver, IterationSolver
-from equations import StraightParamSpec, IterativeParamSpec, LambdaEquation
-from equations import functions
+from equations import StraightParamSpec, IterativeParamSpec, LambdaEquation, EquationSystem
 
 if __name__ == "__main__":
+    equation_system = EquationSystem(
+        lambda x: Decimal("0.1") * x[0] ** 2 + x[0] + Decimal("0.2") * x[1] ** 2 - Decimal("0.3"),
+        lambda x: Decimal("0.2") * x[0] ** 2 + x[1] - Decimal("0.1") * x[0] * x[1] - Decimal("0.7")
+    )
+
+    print(equation_system.solve(Row([0.25, 0.75])))
+
+    exit(0)
+
     e1 = LambdaEquation(
         lambda x: x ** 3 + x ** 2 + Decimal(1),
         lambda x: 3 * x ** 2 + 2 * x,

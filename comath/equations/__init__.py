@@ -5,3 +5,4 @@ from .integrators import LeftRectangleIntegrator, RightRectangleIntegrator, Midd
 from .interfaces import AnyEquation, LambdaEquation, SimpleFunction
 from .solvers import SolveMethod, StraightParamSpec, IterativeParamSpec
 from .solvers import Solver, BisectionSolver, SecantSolver, NewtonSolver, IterationSolver
+from .systems import EquationSystem
