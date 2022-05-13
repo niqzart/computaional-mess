@@ -54,10 +54,10 @@ def input_int_range(prompt: str, left: int, right: int) -> int:
     return checked_input(prompt, int_range_check)
 
 
-def input_decimal(prompt: str) -> Decimal:
+def input_decimal(prompt: str, additional_check: Callable[[Decimal], Decimal | None] = lambda x: x) -> Decimal:
     def decimal_check(line: str) -> Decimal | None:
         try:
-            return Decimal(line)
+            return additional_check(Decimal(line.replace(",", ".")))
         except InvalidOperation:
             return None
 

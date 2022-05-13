@@ -17,9 +17,9 @@ class IntegratorParamSpec(ParamSpec):
 
 
 class Integrator(Solver):
-    def __init__(self, separations: int = 10000, root_precision: int = None):
+    def __init__(self, separations: int = None, root_precision: int = None):
         super().__init__(root_precision)
-        self.separations = separations
+        self.separations = separations or 10000  # TODO calculate this from precision
 
     def _function_or_break(self, equation: AnyEquation, x: Decimal) -> Decimal:
         try:

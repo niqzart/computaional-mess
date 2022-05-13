@@ -83,25 +83,81 @@ def oscillating_function_antiderivative(x: Decimal) -> Decimal:
 
 
 if __name__ == "__main__":
-    integrators = [
-        LeftRectangleIntegrator(),
-        RightRectangleIntegrator(),
-        MiddleRectangleIntegrator(),
-        TrapezoidalIntegrator(),
-        SimpsonsIntegrator(),
+    integrator_types = [
+        LeftRectangleIntegrator,
+        RightRectangleIntegrator,
+        MiddleRectangleIntegrator,
+        TrapezoidalIntegrator,
+        SimpsonsIntegrator,
     ]
 
-    equations = [
-        functions.SquareEquation(),
-        functions.TrigonometricEquation(functions.TrigonometricEquationType.SIN) / functions.LinearEquation(),
-        functions.SignEquation(),
-        Decimal(1) / functions.LinearEquation(),
-        functions.TrigonometricEquation(functions.TrigonometricEquationType.SIN)(
-            Decimal(1) / functions.LinearEquation()),
-        functions.PolynomialEquation(1, -2, 3, -4, 5, -6)
-    ]
+    while True:
+        by_max_steps = input_bool("Do you want to specify the amount of steps instead of precision? ")
+        print("Interpreting as", "Yes" if by_max_steps else "No")
+        if by_max_steps:
+            max_steps = input_int_range("Enter the number of steps: ", 1, 1000000000000000)
+        else:
+            precision = input_decimal("Enter the precision: ", lambda x: x if 0 < x < 1 else None)
+            max_steps = None
 
-    for equation in equations:
-        for integrator in integrators:
-            print(beautify_decimal(integrator.solve(equation, IntegratorParamSpec(-3, 10))))
-        print()
+        integrators: dict[str, Integrator] = {integrator_type.__name__: integrator_type(max_steps)
+                                              for integrator_type in integrator_types}
+
+        function: AnyEquation
+        antiderivative: Callable[[Decimal], Decimal]
+        has_breaks: bool = False
+
+        match input_menu(ExampleFunction, "Enter the function to integrate: "):
+            case ExampleFunction.SQUARE_FUNCTION:
+                a = input_decimal("Enter a ≠ 0: ", lambda x: None if x == 0 else x)
+                b = input_decimal("Enter b: ")
+                c = input_decimal("Enter c: ")
+                function = functions.SquareEquation(a, b, c)
+                antiderivative = square_function_antiderivative(a, b, c)
+            case ExampleFunction.POLYNOMIAL_FUNCTION:
+                prompt = "Enter all coefficients (space separated, starting with the senior one): "
+                coefficients = checked_input(prompt, coefficients_check)
+                function = functions.PolynomialEquation(*coefficients)
+                antiderivative = polynomial_function_antiderivative(*coefficients)
+            case ExampleFunction.INVERSE_FUNCTION:
+                k = input_decimal("Enter k ≠ 0: ", lambda x: None if x == 0 else x)
+                b = input_decimal("Enter b: ")
+                function = Decimal(1) / functions.LinearEquation(k, b)
+                antiderivative = inverse_function_antiderivative(k, b)
+                has_breaks = True  # noqa
+            case ExampleFunction.SIGN_FUNCTION:
+                reverse = input_bool("Do you want to reverse the sign function? ")
+                print("Interpreting as", "Yes" if reverse else "No")
+                function = functions.SignEquation(reverse)
+                antiderivative = abs
+                has_breaks = True  # noqa
+            case ExampleFunction.SINC_FUNCTION:
+                function = SINC_FUNCTION
+                antiderivative = sinc_function_antiderivative
+                has_breaks = True  # noqa
+            case ExampleFunction.OSCILLATING_FUNCTION:
+                function = OSCILLATING_FUNCTION
+                antiderivative = oscillating_function_antiderivative
+                has_breaks = True  # noqa
+
+        left: Decimal = input_decimal("Enter the left border: ")
+        right: Decimal = input_decimal("Enter the right border: ", lambda x: x if x > left else None)
+
+        print("\nCalculating the results...")
+        if has_breaks:
+            print("Algorithmic mean will be used to deal with breaks")
+
+        results: dict[str, tuple[Decimal, int | None]] = {
+            name: (integrator.solve(function, IntegratorParamSpec(left, right)), integrator.separations)
+            for name, integrator in integrators.items()
+        }
+        results["NewtonLeibnizRule"] = (antiderivative(right) - antiderivative(left), None)
+
+        print("\nResults:")
+        for name, (result, separations) in results.items():
+            sep_description = () if separations is None else ("done in", separations, "separations")
+            print(f"{name + ':':30} {beautify_decimal(result):30}", *sep_description)
+
+        no_exit = input_bool("Do you want to continue integrating? ")
+        if not no_exit:
+            break
