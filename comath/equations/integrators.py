@@ -35,9 +35,6 @@ class Integrator(Solver):
     def solve(self, equation: AnyEquation, params: IntegratorParamSpec) -> Decimal:
         a, b = params.convert()
         step_size: Decimal = (b - a) / self.separations
-        # result: Decimal = Decimal()
-        # for i in range(self.separations - 1):
-        #     result +=
         return self._solve(equation, a, b, step_size)
 
 
