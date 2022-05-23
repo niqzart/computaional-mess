@@ -3,16 +3,27 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Protocol
 
+from base import Row
+
 
 class AnyEquation:
     def function(self, x: Decimal) -> Decimal:
         raise NotImplementedError()
 
+    def function_row(self, xs: Row) -> Row:
+        return xs.map(lambda x: self.function(x))
+
     def derivative(self, x: Decimal) -> Decimal:
         raise NotImplementedError()
 
+    def derivative_row(self, xs: Row) -> Row:
+        return xs.map(lambda x: self.derivative(x))
+
     def fixed_point(self, x: Decimal) -> Decimal:
         raise NotImplementedError()
+
+    def fixed_point_row(self, xs: Row) -> Row:
+        return xs.map(lambda x: self.fixed_point(x))
 
     def __call__(self, other: AnyEquation) -> AnyEquation:
         if not isinstance(other, AnyEquation):

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from decimal import Decimal
 from enum import Enum
+from math import sin
 
 from base import Row, LinearEquationSystem, NotImplementedField
-from math import sin
 
 
 class ApproximationFunction(Enum):
@@ -12,6 +14,21 @@ class ApproximationFunction(Enum):
     FULL_SQUARE = "Square function: y = ax² + bx + c"
     LOGARITHMIC = "Logarithmic function: y = a + b ln(x)"
     TRIGONOMETRIC = "Trigonometric function: y = a sin(x) + b"
+
+    def approximator(self) -> Approximator:
+        match self:
+            case ApproximationFunction.CONSTANT:
+                return ConstantApproximator()
+            case ApproximationFunction.LINEAR:
+                return LinearApproximator()
+            case ApproximationFunction.LIMITED_SQUARE:
+                return LimitedSquareApproximator()
+            case ApproximationFunction.FULL_SQUARE:
+                return SquareApproximator()
+            case ApproximationFunction.LOGARITHMIC:
+                return LogarithmicApproximator()
+            case ApproximationFunction.TRIGONOMETRIC:
+                return TrigonometricApproximator()
 
 
 class Approximator:
@@ -57,14 +74,14 @@ class Approximator:
         return self._predict_row(xs)
 
     def _calculate_errors(self, predicted: Row, ys: Row) -> Row:
-        return Row([(predicted[i] - ys[i])**2 for i in range(predicted.size)])
+        return Row([(predicted[i] - ys[i]) ** 2 for i in range(predicted.size)])
 
     def calculate_errors(self, xs: Row, ys: Row) -> Row:
         return self._calculate_errors(self.predict_row(xs), ys)
 
     def _exclude(self, xs: Row, ys: Row) -> int:
         predicted = self._predict_row(xs)
-        return max(((predicted[i] - ys[i])**2, i) for i in range(xs.size))[1]
+        return max(((predicted[i] - ys[i]) ** 2, i) for i in range(xs.size))[1]
 
     def fit_and_exclude(self, xs: Row, ys: Row) -> tuple[int, Row]:
         xs = self.prepare(xs)
@@ -101,17 +118,17 @@ class LimitedSquareApproximator(Approximator):
     size = 1
 
     def derivatives(self, xi: Decimal) -> Row:
-        return Row([xi**2])
+        return Row([xi ** 2])
 
     def predict_one(self, xi: Decimal) -> Decimal:
-        return self.coefficients[0] * xi**2
+        return self.coefficients[0] * xi ** 2
 
 
 class SquareApproximator(Approximator):
     size = 3
 
     def derivatives(self, xi: Decimal) -> Row:
-        return Row([xi**2, xi, Decimal(1)])
+        return Row([xi ** 2, xi, Decimal(1)])
 
     def predict_one(self, xi: Decimal) -> Decimal:
         return self.coefficients[0] * xi ** 2 + self.coefficients[1] * xi + self.coefficients[2]
