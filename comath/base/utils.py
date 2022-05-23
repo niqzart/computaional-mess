@@ -31,3 +31,8 @@ def beautify_decimal(value: Decimal, quantize: bool = True) -> str:
     if value == 0:
         return "0"
     return value.to_eng_string()
+
+
+@property
+def NotImplementedField(_):
+    raise NotImplementedError()
