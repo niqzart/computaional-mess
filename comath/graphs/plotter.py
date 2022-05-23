@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from enum import Enum
 
-from matplotlib.pyplot import figure, plot, show, Figure, Axes, axis, legend
+from matplotlib.pyplot import figure, show, Figure, Axes
 
 from base import Row, NUMBER
 
@@ -51,27 +51,25 @@ class LineStyle(Enum):
     DOTTED = ":"
 
 
-def setup_pyplot():
-    fig: Figure = figure()
-    ax: Axes = fig.add_subplot(1, 1, 1)
-    ax.spines["left"].set_position("center")
-    ax.spines["bottom"].set_position("zero")
-    ax.spines["right"].set_color("none")
-    ax.spines["top"].set_color("none")
-    ax.xaxis.set_ticks_position("bottom")
-    ax.yaxis.set_ticks_position("left")
+class Plot:
+    def __init__(self):
+        self.figure: Figure = figure()
+        self.axes: Axes = self.figure.add_subplot(1, 1, 1)
+        self.axes.spines["left"].set_position("center")
+        self.axes.spines["bottom"].set_position("zero")
+        self.axes.spines["right"].set_color("none")
+        self.axes.spines["top"].set_color("none")
+        self.axes.xaxis.set_ticks_position("bottom")
+        self.axes.yaxis.set_ticks_position("left")
 
+    def add_equation(self, equation: Callable[[Row], Row], start: NUMBER, finish: NUMBER, colour: Colour,
+                     label: str = None, line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
+        x = Row.linearly_spaced(start, finish, 100)
+        self.axes.plot(x, equation(x), colour.value + marker.value + line_style.value, label=label)
 
-def plot_equation(equation: Callable[[Row], Row], start: NUMBER, finish: NUMBER, colour: Colour,
-                  label: str = None, line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
-    x = Row.linearly_spaced(start, finish, 100)
-    plot(x, equation(x), colour.value + marker.value + line_style.value, label=label)
+    def add_points(self, xs: Row | NUMBER, ys: Row | NUMBER, colour: Colour, marker: Marker, label: str = None):
+        self.axes.plot(xs, ys, colour.value + marker.value, label=label)
 
-
-def plot_points(xs: Row | NUMBER, ys: Row | NUMBER, colour: Colour, marker: Marker, label: str = None):
-    plot(xs, ys, colour.value + marker.value, label=label)
-
-
-def show_with_legend():
-    legend()
-    show()
+    def show(self):
+        self.axes.legend()
+        show()
