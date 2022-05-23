@@ -22,6 +22,15 @@ class Row:
     def from_lambda(cls, size: int, value: Callable[[int], Decimal] = lambda i: Decimal()):
         return cls([value(i) for i in range(size)], size)
 
+    @classmethod
+    def linearly_spaced(cls, start: NUMBER, finish: NUMBER, intervals: int):
+        temp: Decimal = number_to_decimal(start)
+        step: Decimal = (number_to_decimal(finish) - temp) / intervals
+        return cls([temp] + [(temp := temp + step) for _ in range(intervals)])
+
+    def map(self, function: Callable[[Decimal], Decimal]) -> Row:
+        return Row([function(x) for x in self])
+
     def __getitem__(self, item: int) -> Decimal:
         return self.data[item]
 
