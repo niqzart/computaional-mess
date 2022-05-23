@@ -2,6 +2,7 @@ from decimal import Decimal
 from enum import Enum
 
 from base import Row, LinearEquationSystem, NotImplementedField
+from math import sin
 
 
 class ApproximationFunction(Enum):
@@ -10,6 +11,7 @@ class ApproximationFunction(Enum):
     LIMITED_SQUARE = "Limited square function: y = ax²"
     FULL_SQUARE = "Square function: y = ax² + bx + c"
     LOGARITHMIC = "Logarithmic function: y = a + b ln(x)"
+    TRIGONOMETRIC = "Trigonometric function: y = a sin(x) + b"
 
 
 class Approximator:
@@ -95,6 +97,16 @@ class LinearApproximator(Approximator):
         return self.coefficients[0] * xi + self.coefficients[1]
 
 
+class LimitedSquareApproximator(Approximator):
+    size = 1
+
+    def derivatives(self, xi: Decimal) -> Row:
+        return Row([xi**2])
+
+    def predict_one(self, xi: Decimal) -> Decimal:
+        return self.coefficients[0] * xi**2
+
+
 class SquareApproximator(Approximator):
     size = 3
 
@@ -119,10 +131,11 @@ class LogarithmicApproximator(Approximator):
         return self.coefficients[0] * xi.ln() + self.coefficients[1]
 
 
-t = SquareApproximator()
-xs = Row([-2, -1, 0, 1, 2])
-ys = Row([4, 1, 0, 1, 4])
-print(*t.fit_and_exclude(xs, ys))
-print(t.coefficients)
-print(ys)
-print(t.predict_row(xs))
+class TrigonometricApproximator(Approximator):
+    size = 2
+
+    def derivatives(self, xi: Decimal) -> Row:
+        return Row([Decimal.from_float(sin(xi)), Decimal(1)])
+
+    def predict_one(self, xi: Decimal) -> Decimal:
+        return self.coefficients[0] * Decimal.from_float(sin(xi)) + self.coefficients[1]
