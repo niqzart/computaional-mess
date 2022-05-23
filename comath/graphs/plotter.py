@@ -52,7 +52,10 @@ class LineStyle(Enum):
 
 
 class Plot:
-    def __init__(self):
+    def __init__(self, start: NUMBER, finish: NUMBER):
+        self.start: NUMBER = start
+        self.finish: NUMBER = finish
+
         self.figure: Figure = figure()
         self.axes: Axes = self.figure.add_subplot(1, 1, 1)
         self.axes.spines["left"].set_position("center")
@@ -62,9 +65,9 @@ class Plot:
         self.axes.xaxis.set_ticks_position("bottom")
         self.axes.yaxis.set_ticks_position("left")
 
-    def add_equation(self, equation: Callable[[Row], Row], start: NUMBER, finish: NUMBER, colour: Colour,
-                     label: str = None, line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
-        x = Row.linearly_spaced(start, finish, 100)
+    def add_equation(self, equation: Callable[[Row], Row], colour: Colour, label: str = None,
+                     line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
+        x = Row.linearly_spaced(self.start, self.finish, 100)
         self.axes.plot(x, equation(x), colour.value + marker.value + line_style.value, label=label)
 
     def add_points(self, xs: Row | NUMBER, ys: Row | NUMBER, colour: Colour, marker: Marker, label: str = None):
