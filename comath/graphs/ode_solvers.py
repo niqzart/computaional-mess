@@ -56,3 +56,42 @@ class RungeKuttaODES(SingleStepODES):
         k3: Decimal = equation(x_n + t, y_n + t * k2)
         k4: Decimal = equation(x_n + self.step_size, y_n + self.step_size * k3)
         return (k1 + 2 * k2 + 2 * k3 + k4) / 6
+
+
+class MultiStepODES(ODESolver):
+    def __init__(self, starter_type: Type[SingleStepODES], step_size: Decimal, point_count: int):
+        super().__init__(step_size, point_count - 4)
+        self.starter: SingleStepODES = starter_type(step_size, 4)
+
+    def _delta_y(self, y_3: Decimal, y_2: Decimal, y_1: Decimal, y_0: Decimal) -> Decimal:
+        raise NotImplementedError()
+
+    def _prev_y_index(self, current: int) -> int:
+        return current + 4
+
+    def _solve(self, equation: EquationProtocol, start_x: Decimal, start_y: Decimal) -> list[tuple[Decimal, Decimal]]:
+        result = self.starter.solve(equation, start_x, start_y)
+        start_x = result[-1][0]
+        temp = [equation(x, y) for x, y in result]
+        for i in range(self.point_count + 1):
+            start_y = result[self._prev_y_index(i)][1] + self._delta_y(*(temp[(i + j) % 4] for j in range(4)))
+            result.append((start_x, start_y))
+            temp[i % 4] = equation(start_x, start_y)
+            start_x += self.step_size
+        result.pop(4)
+        return result
+
+
+class MilneODES(MultiStepODES):
+    def _prev_y_index(self, current: int) -> int:
+        return current + 1
+
+    def _delta_y(self, y_3: Decimal, y_2: Decimal, y_1: Decimal, y_0: Decimal) -> Decimal:
+        result: Decimal = 2 * y_0 - y_1 + 2 * y_2
+        return Decimal(4) * self.step_size * result / Decimal(3)
+
+
+class AdamsODES(MultiStepODES):
+    def _delta_y(self, y_3: Decimal, y_2: Decimal, y_1: Decimal, y_0: Decimal) -> Decimal:
+        result: Decimal = 55 * y_0 - 59 * y_1 + 37 * y_2 - 9 * y_3
+        return self.step_size * result / Decimal(24)
