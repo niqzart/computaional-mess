@@ -1,4 +1,5 @@
 from decimal import Decimal
+from random import random
 
 from base import Row
 
@@ -63,3 +64,7 @@ class NewtonInterpolator(Interpolator):
             result += multiplier * self.coefficients[i]
             multiplier *= xi - self.xs[i]
         return result
+
+
+def distort_row(ys: Row, strength: float = 1) -> Row:
+    return Row([y if random() > 0.5 else y * Decimal.from_float(1 + 0.02 * strength * (random() - 0.5)) for y in ys])
