@@ -15,7 +15,8 @@ class AnyEquation:
 
     def protected_function(self, x: Decimal) -> Decimal | None:
         try:
-            return self.function(x)
+            result: Decimal = self.function(x)
+            return result if result.is_finite() else None
         except DecimalException:
             return None
 

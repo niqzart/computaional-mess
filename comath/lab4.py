@@ -68,6 +68,8 @@ if __name__ == "__main__":
             while True:
                 try:
                     xs = Row.from_line(input("Enter coefficients (separate with spaces): ").strip())
+                    xs.data = list(set(xs.data))
+                    xs.size = len(xs.data)
                     break
                 except ValueError as e:
                     print(e.args[0])
@@ -78,10 +80,10 @@ if __name__ == "__main__":
 
         print()
         ys = function.protected_function_row(xs)
-        if len(ys) == 0:
-            print("ERROR: None of the values for inputted Xs are defined")
+        if ys.count(None) == len(ys):
+            print("ERROR: None of the values for inputted Xs are defined\n")
             continue
-        if xs.size != len(ys):
+        if ys.count(None) > 0:
             print("Some function values for some Xs are not defined, they will be skipped")
             xs = Row([xs[i] for i in range(xs.size) if ys[i] is not None])
             ys = Row([y for y in ys if y is not None])
