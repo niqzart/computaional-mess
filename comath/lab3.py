@@ -84,6 +84,21 @@ def oscillating_function_antiderivative(x: Decimal) -> Decimal:
     return result
 
 
+Empty = object()
+
+
+def precision_or_none_check(line: str) -> int | object | None:
+    try:
+        if line.strip() == "":
+            return Empty
+        result = int(line)
+        if 0 < result <= 10:
+            return result
+        return None
+    except ValueError:
+        return None
+
+
 if __name__ == "__main__":
     integrator_types = [
         LeftRectangleIntegrator,
@@ -94,12 +109,11 @@ if __name__ == "__main__":
     ]
 
     while True:
-        by_max_steps = input_bool("Do you want to specify the amount of steps manually? ")
-        print("Interpreting as", "Yes" if by_max_steps else "No")
-        max_steps = input_int_range("Enter the number of steps: ", 1, 1000000000000000) if by_max_steps else None
-
-        integrators: dict[str, Integrator] = {integrator_type.__name__: integrator_type(max_steps)
-                                              for integrator_type in integrator_types}
+        digits: int = checked_input("Enter the precision power (1E-<input>) or press Enter to skip: ",
+                                    precision_or_none_check)
+        by_precision = digits is not Empty
+        if by_precision:
+            precision: Decimal = Decimal(f"1E-{digits + 1}")
 
         function: AnyEquation
         antiderivative: Callable[[Decimal], Decimal]
@@ -144,18 +158,33 @@ if __name__ == "__main__":
         left: Decimal = input_decimal("Enter the left border: ")
         right: Decimal = input_decimal("Enter the right border: ", lambda x: x if x > left else None)
 
-        print("\nCalculating the results...")
         if any(left <= sb <= right for sb in second_breaks):
             print("There are second-type break(s) in this range for this function")
-            print("The integral does not converge")
+            print("The integral does not converge", end="\n\n")
             continue
-        if has_breaks:
-            print("Algorithmic mean will be used to deal with breaks")
 
-        results: dict[str, tuple[Decimal, int | None]] = {
-            name: (integrator.solve(function, IntegratorParamSpec(left, right)), integrator.separations)
-            for name, integrator in integrators.items()
-        }
+        results: dict[str, tuple[Decimal, int | None]]
+        if by_precision:
+            print("\nCalculating the results...")
+            integrator = TrapezoidalIntegrator(10)
+            prev: Decimal = integrator.solve(function, IntegratorParamSpec(left, right))
+            curr: Decimal
+            while True:
+                integrator.separations *= 2
+                curr = integrator.solve(function, IntegratorParamSpec(left, right))
+                if abs(curr - prev) <= precision:
+                    break
+                prev = curr
+            results = {TrapezoidalIntegrator.__name__: (curr, integrator.separations)}
+        else:
+            integrators: dict[str, Integrator] = {integrator_type.__name__: integrator_type()
+                                                  for integrator_type in integrator_types}
+            print("\nCalculating the results...")
+            if has_breaks:
+                print("Algorithmic mean will be used to deal with breaks")
+            results = {name: (integrator.solve(function, IntegratorParamSpec(left, right)), integrator.separations)
+                       for name, integrator in integrators.items()}
+
         results["NewtonLeibnizRule"] = (antiderivative(right) - antiderivative(left), None)
 
         print("\nResults:")
@@ -165,3 +194,4 @@ if __name__ == "__main__":
 
         if not input_bool("\nDo you want to continue integrating? "):
             break
+        print()
