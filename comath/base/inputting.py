@@ -31,10 +31,10 @@ def input_bool(prompt: str) -> bool:
     return checked_input(prompt, bool_check)
 
 
-def input_int(prompt: str) -> int:
+def input_int(prompt: str, additional_check: Callable[[int], int | None] = lambda x: x) -> int:
     def int_check(line: str) -> int | None:
         try:
-            return int(line)
+            return additional_check(int(line))
         except ValueError:
             return None
 
