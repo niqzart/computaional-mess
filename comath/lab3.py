@@ -43,7 +43,7 @@ def polynomial_function_antiderivative(*coefficients: Decimal):
 
 
 def inverse_function_antiderivative(k: Decimal, b: Decimal):
-    return lambda x: (k * x + b).ln() / k
+    return lambda x: abs(k * x + b).ln() / k
 
 
 SINC_FUNCTION = functions.TrigonometricEquation(functions.TrigonometricEquationType.SIN) / functions.LinearEquation()
@@ -104,6 +104,7 @@ if __name__ == "__main__":
         function: AnyEquation
         antiderivative: Callable[[Decimal], Decimal]
         has_breaks: bool = False
+        second_breaks: list[Decimal] = []
 
         match input_menu(ExampleFunction, "Enter the function to integrate: "):
             case ExampleFunction.SQUARE_FUNCTION:
@@ -122,6 +123,7 @@ if __name__ == "__main__":
                 b = input_decimal("Enter b: ")
                 function = Decimal(1) / functions.LinearEquation(k, b)
                 antiderivative = inverse_function_antiderivative(k, b)
+                second_breaks.append(-b)
                 has_breaks = True  # noqa
             case ExampleFunction.SIGN_FUNCTION:
                 reverse = input_bool("Do you want to reverse the sign function? ")
@@ -136,12 +138,17 @@ if __name__ == "__main__":
             case ExampleFunction.OSCILLATING_FUNCTION:
                 function = OSCILLATING_FUNCTION
                 antiderivative = oscillating_function_antiderivative
+                second_breaks.append(Decimal())
                 has_breaks = True  # noqa
 
         left: Decimal = input_decimal("Enter the left border: ")
         right: Decimal = input_decimal("Enter the right border: ", lambda x: x if x > left else None)
 
         print("\nCalculating the results...")
+        if any(left <= sb <= right for sb in second_breaks):
+            print("There are second-type break(s) in this range for this function")
+            print("The integral does not converge")
+            continue
         if has_breaks:
             print("Algorithmic mean will be used to deal with breaks")
 
@@ -156,6 +163,5 @@ if __name__ == "__main__":
             sep_description = () if HIDE_SEPARATIONS or separations is None else ("done in", separations, "separations")
             print(f"{name + ':':30} {beautify_decimal(result):30}", *sep_description)
 
-        no_exit = input_bool("Do you want to continue integrating? ")
-        if not no_exit:
+        if not input_bool("\nDo you want to continue integrating? "):
             break
