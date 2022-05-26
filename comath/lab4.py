@@ -87,7 +87,7 @@ if __name__ == "__main__":
             print("Some function values for some Xs are not defined, they will be skipped")
             xs = Row([xs[i] for i in range(xs.size) if ys[i] is not None])
             ys = Row([y for y in ys if y is not None])
-        ys = distort_row(ys, 0)
+        ys = distort_row(ys, input_int("Enter the distortion coefficient: ", lambda x: x if x >= 0 else None))
 
         print("Interpolation nodes (x, y):")
         [print(beautify_decimal(xs[i]), beautify_decimal(ys[i])) for i in range(xs.size)]
