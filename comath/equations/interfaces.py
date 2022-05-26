@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, DecimalException
 from typing import Protocol
 
 from base import Row
@@ -11,7 +11,16 @@ class AnyEquation:
         raise NotImplementedError()
 
     def function_row(self, xs: Row) -> Row:
-        return xs.map(lambda x: self.function(x))
+        return xs.map(self.function)
+
+    def protected_function(self, x: Decimal) -> Decimal | None:
+        try:
+            return self.function(x)
+        except DecimalException:
+            return None
+
+    def protected_function_row(self, xs: Row) -> list[Decimal | None]:
+        return xs.protected_map(self.protected_function)
 
     def derivative(self, x: Decimal) -> Decimal:
         raise NotImplementedError()

@@ -31,6 +31,9 @@ class Row:
     def map(self, function: Callable[[Decimal], Decimal]) -> Row:
         return Row([function(x) for x in self])
 
+    def protected_map(self, function: Callable[[Decimal], Decimal | None]) -> list[Decimal | None]:
+        return [function(x) for x in self]
+
     def __getitem__(self, item: int) -> Decimal:
         return self.data[item]
 

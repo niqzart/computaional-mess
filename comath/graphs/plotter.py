@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from decimal import Decimal
 from enum import Enum
 
 from matplotlib.pyplot import figure, show, Figure, Axes
@@ -65,10 +66,33 @@ class Plot:
         self.axes.xaxis.set_ticks_position("bottom")
         self.axes.yaxis.set_ticks_position("left")
 
+    def _add_equation(self, xs: Row | list[Decimal], ys: Row | list[Decimal], colour: Colour, label: str = None,
+                      line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
+        self.axes.plot(xs, ys, colour.value + marker.value + line_style.value, label=label)
+
     def add_equation(self, equation: Callable[[Row], Row], colour: Colour, label: str = None,
                      line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
         x = Row.linearly_spaced(self.start, self.finish, 100)
-        self.axes.plot(x, equation(x), colour.value + marker.value + line_style.value, label=label)
+        self._add_equation(x, equation(x), colour, label, line_style, marker)
+
+    def add_protected_equation(self, equation: Callable[[Row], list[Decimal | None]], colour: Colour,
+                               label: str = None, line_style: LineStyle = LineStyle.NONE, marker: Marker = Marker.NONE):
+        xs = Row.linearly_spaced(self.start, self.finish, 1000)
+        ys = equation(xs)
+        lines: list[tuple[Row, Row]] = []
+        temp_x: list[Decimal] = []
+        temp_y: list[Decimal] = []
+        for i in range(xs.size):
+            if ys[i] is None:
+                lines.append((Row(temp_x), Row(temp_y)))
+                temp_x, temp_y = [], []
+            else:
+                temp_x.append(xs[i])
+                temp_y.append(ys[i])
+        lines.append((Row(temp_x), Row(temp_y)))
+
+        for xs, ys in lines:
+            self._add_equation(xs, ys, colour, label, line_style, marker)
 
     def add_points(self, xs: Row | NUMBER, ys: Row | NUMBER, colour: Colour, marker: Marker, label: str = None):
         self.axes.plot(xs, ys, colour.value + marker.value, label=label)
