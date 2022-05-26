@@ -3,9 +3,9 @@ from decimal import Decimal
 from math import sin
 
 from base import NUMBER, input_menu, input_decimal
-from equations import functions
-from graphs import ODESolver, EulerODES, EulerPlusODES, RungeKuttaODES, MilneODES, AdamsODES
-from graphs import Plot, Colour, Marker  # , NewtonInterpolator
+from equations import functions, AnyEquation
+from graphs import ODESolver, EulerODES, EulerPlusODES, RungeKuttaODES, MilneODES, AdamsODES, NewtonInterpolator
+from graphs import Plot, Colour, Marker
 
 
 class ODESolverMenu(Enum):
@@ -31,10 +31,10 @@ class ODESolverMenu(Enum):
 
 
 class ODEExample(Enum):
-    Y_ONLY = "Equation 1: y' = y"
-    X_ONLY = "Equation 2: y' = x"
-    SIN_X = "Equation 3: y' = sin(x)"
-    BOTH = "Equation 4: y' = 0.5xy"
+    Y_ONLY = "y' = y"
+    X_ONLY = "y' = x"
+    SIN_X = "y' = sin(x)"
+    BOTH = "y' = 0.5xy"
 
     def equation(self, x: Decimal, y: Decimal) -> Decimal:
         match self:
@@ -47,38 +47,46 @@ class ODEExample(Enum):
             case ODEExample.BOTH:
                 return x * y / Decimal(2)
 
-    def _solution(self):
+    def solution(self, x_0: Decimal, y_0: Decimal) -> AnyEquation:
         match self:
             case ODEExample.Y_ONLY:
-                return functions.ExponentEquation()
+                result = functions.ExponentEquation()
+                c: Decimal = y_0 / result.function(x_0)
+                return result * c
             case ODEExample.X_ONLY:
-                return (functions.SquareEquation() + Decimal(2)) / Decimal(2)
+                result = (functions.SquareEquation() + Decimal(2)) / Decimal(2)
+                c: Decimal = y_0 - result.function(x_0)
+                return result + c
             case ODEExample.SIN_X:
-                return -functions.TrigonometricEquation(functions.TrigonometricEquationType.COS)
+                result = -functions.TrigonometricEquation(functions.TrigonometricEquationType.COS)
+                c: Decimal = y_0 - result.function(x_0)
+                return c + result
             case ODEExample.BOTH:
-                return functions.ExponentEquation()(functions.SquareEquation() / Decimal(4))
-
-    def solution(self, x_0: Decimal, y_0: Decimal):
-        result = self._solution()
-        return result - (result.function(x_0) - y_0)
+                result = functions.ExponentEquation()(functions.SquareEquation() / Decimal(4))
+                c: Decimal = y_0 / result.function(x_0)
+                return result * c
 
 
-def solve_one(plot: Plot, solver: ODESolver, x: Decimal, y: Decimal, equation: ODEExample, colour: Colour):
+def solve_one(plot: Plot, solver: ODESolver, x: Decimal, y: Decimal, equation: ODEExample,
+              colour: Colour, point_marker: Marker = Marker.CIRCLE_MARKER, point_color: Colour = Colour.RED):
     xs, ys = solver.solve_as_rows(equation.equation, x, y)
-    # ni = NewtonInterpolator(xs, ys)
-    # plot.add_equation(ni.interpolate_row, colour, solver.__class__.__name__[:-4])
-    plot.add_points(xs, ys, colour, Marker.NONE, label=solver.__class__.__name__[:-4])
+    ni = NewtonInterpolator(xs, ys)
+    plot.add_equation(ni.interpolate_row, colour, "interpolated")
+    if xs.size < 30 and point_marker != Marker.NONE:
+        plot.add_points(xs, ys, point_color, point_marker, label="solved")
 
 
 if __name__ == "__main__":
-    solver: ODESolverMenu = input_menu(ODESolverMenu, "Enter the preferred solver: ")
+    solver: ODESolverMenu = ODESolverMenu.RUNGE_KUTTA  # input_menu(ODESolverMenu, "Enter the preferred solver: ")
     ode: ODEExample = input_menu(ODEExample, "Enter the equation to solve: ")
-    x, y = input_decimal("Enter the condition's x: "), input_decimal("Enter the condition's y: ")
-    a, b = input_decimal("Enter the starting x: "), input_decimal("Enter the finishing x: ")
+    x = input_decimal("Enter the condition's x: ")
+    y = input_decimal("Enter the condition's y: ")
+    b = input_decimal("Enter the finishing x: ")
     step_size = input_decimal("Enter the step size: ")
-    point_count = int((b - a) // step_size)
+    point_count = int((b - x) // step_size)
 
-    plot = Plot(a, b)
+    plot = Plot(x, b)
+    plot.add_equation(ode.solution(x, y).function_row, Colour.BLACK, label="solution")
     if solver == ODESolverMenu.ALL:
         solvers = [
             (ODESolverMenu.EULER, Colour.RED),
@@ -88,9 +96,8 @@ if __name__ == "__main__":
             (ODESolverMenu.ADAMS, Colour.CYAN),
         ]
         for one_solver, colour in solvers:
-            solve_one(plot, one_solver.solver(step_size, point_count), x, y, ode, colour)
+            solve_one(plot, one_solver.solver(step_size, point_count), x, y, ode, colour, Marker.NONE)
     else:
         solve_one(plot, solver.solver(step_size, point_count), x, y, ode, Colour.GREEN)
-    plot.add_equation(ode.solution(x, y).function_row, Colour.BLACK, label="Solution")
     plot.add_points(x, y, Colour.MAGENTA, Marker.X_MARKER)
     plot.show()
