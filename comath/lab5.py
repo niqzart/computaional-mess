@@ -73,7 +73,9 @@ def solve_one(plot: Plot, solver: ODESolver, x: Decimal, y: Decimal, equation: O
     ni = NewtonInterpolator(xs, ys)
     plot.add_equation(ni.interpolate_row, colour, "interpolated")
     if xs.size < 30 and point_marker != Marker.NONE:
+        x0, y0 = xs.pop(0), ys.pop(0)
         plot.add_points(xs, ys, point_color, point_marker, label="solved")
+        plot.add_points(x0, y0, Colour.MAGENTA, point_marker, label="condition")
 
 
 if __name__ == "__main__":
@@ -99,5 +101,4 @@ if __name__ == "__main__":
             solve_one(plot, one_solver.solver(step_size, point_count), x, y, ode, colour, Marker.NONE)
     else:
         solve_one(plot, solver.solver(step_size, point_count), x, y, ode, Colour.GREEN)
-    plot.add_points(x, y, Colour.MAGENTA, Marker.X_MARKER)
     plot.show()
