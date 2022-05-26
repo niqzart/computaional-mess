@@ -1,5 +1,5 @@
-from enum import Enum
 from decimal import Decimal
+from enum import Enum
 from math import sin
 
 from base import NUMBER, input_menu, input_decimal

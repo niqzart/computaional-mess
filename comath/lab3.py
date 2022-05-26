@@ -2,7 +2,7 @@ from decimal import Decimal, DecimalException
 from enum import Enum
 from typing import Callable
 
-from base import beautify_decimal, input_menu, input_decimal, checked_input, input_bool, input_int_range
+from base import beautify_decimal, input_menu, input_decimal, checked_input, input_bool
 from equations import IntegratorParamSpec, LeftRectangleIntegrator, RightRectangleIntegrator, AnyEquation, Integrator
 from equations import MiddleRectangleIntegrator, TrapezoidalIntegrator, SimpsonsIntegrator
 from equations import functions
