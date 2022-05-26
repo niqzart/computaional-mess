@@ -138,7 +138,7 @@ class LogarithmicApproximator(Approximator):
     size = 2
 
     def prepare(self, xs: Row) -> Row:
-        minimal: Decimal = min(xs) - 1
+        minimal: Decimal = min(xs)
         return super().prepare(Row([xi - minimal for xi in xs]) if minimal < 0 else xs)
 
     def derivatives(self, xi: Decimal) -> Row:
